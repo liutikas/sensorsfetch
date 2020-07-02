@@ -1,0 +1,4 @@
+{
+  "days": 10,
+  "sensorsNames": ["bmp280_sensor_44791_indoor", "sds011_sensor_44790_indoor"]
+}
