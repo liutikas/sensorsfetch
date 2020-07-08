@@ -31,6 +31,7 @@ jobs:
       with:
         # Artifact path
         path: build/distributions
+        name: sensorsfetch.zip
     - name: Display structure of downloaded files
       run: ls -R
       working-directory: build
