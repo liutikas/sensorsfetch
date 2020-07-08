@@ -73,7 +73,6 @@ fun fetchDevice(
         print("$date")
         if (!client.fetch(date.toString(), sensorName, outputDirectory)) {
             println(" - failure. Failed to fetch ${getUrl(date.toString(), sensorName)}")
-            break
         }
         println(" - success")
     }

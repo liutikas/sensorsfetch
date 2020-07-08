@@ -17,16 +17,16 @@ package net.liutikas.sensorsfetch
 import java.time.LocalDate
 
 class DateIterator(
-        val startDate: LocalDate,
-        val endDateInclusive: LocalDate
+        private val startDate: LocalDate,
+        private val endDateInclusive: LocalDate
 ): Iterator<LocalDate> {
-    private var currentDate = startDate
+    private var currentDate = endDateInclusive
 
-    override fun hasNext() = currentDate <= endDateInclusive
+    override fun hasNext() = currentDate >= startDate
 
     override fun next(): LocalDate {
         val next = currentDate
-        currentDate = currentDate.plusDays(1)
+        currentDate = currentDate.minusDays(1)
         return next
 
     }
@@ -37,7 +37,6 @@ class DateProgression(
         override val endInclusive: LocalDate
 ) : Iterable<LocalDate>, ClosedRange<LocalDate> {
     override fun iterator(): Iterator<LocalDate> = DateIterator(start, endInclusive)
-    fun step() = DateProgression(start, endInclusive)
 }
 
 operator fun LocalDate.rangeTo(other: LocalDate) = DateProgression(this, other)
