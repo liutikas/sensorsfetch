@@ -1,4 +1,21 @@
 {
   "days": 10,
-  "sensorsNames": ["bmp280_sensor_44791_indoor", "sds011_sensor_44790_indoor"]
+  "sensorsNames": [
+  	"dht22_sensor_43259",
+  	"dht22_sensor_43296",
+  	"dht22_sensor_44017",
+  	"dht22_sensor_46880",
+  	"dht22_sensor_46882",
+  	"dht22_sensor_47326",
+  	"dht22_sensor_47450",
+  	"sds011_sensor_43258",
+  	"sds011_sensor_43295",
+  	"sds011_sensor_43295",
+  	"sds011_sensor_43825",
+  	"sds011_sensor_44016",
+  	"sds011_sensor_46879",
+  	"sds011_sensor_46881",
+  	"sds011_sensor_47325",
+  	"sds011_sensor_47449"
+  ]
 }

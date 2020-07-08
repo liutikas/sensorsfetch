@@ -59,7 +59,7 @@ fun fetchDevice(
     print("Fetching ${sensorName} ")
     for (date in endDate..startDate) {
         if (!client.fetch(date.toString(), sensorName)) {
-            println("Failed to fetch ${getUrl(date.toString(), sensorName)}")
+            println("\nFailed to fetch ${getUrl(date.toString(), sensorName)}")
             break
         }
         print(".")
