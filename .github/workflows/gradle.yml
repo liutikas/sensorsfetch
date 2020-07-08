@@ -30,8 +30,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         # Artifact path
-        path: build/distributions
-        name: sensorsfetch.zip
+        path: build/distributions/sensorsfetch.zip
     - name: Display structure of downloaded files
       run: ls -R
       working-directory: build
