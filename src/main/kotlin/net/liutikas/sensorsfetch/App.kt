@@ -25,8 +25,8 @@ import java.time.LocalDate
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
-    if (args.size != 1) {
-        println("Script expects you to pass a path to the config")
+    if (args.isEmpty()) {
+        println("Script expects you to pass a path to the config and optionally an output directory")
         exitProcess(-1)
     }
     val configFile = File(args[0])
@@ -42,11 +42,22 @@ fun main(args: Array<String>) {
         println("sensorsName was an empty list in $configFile")
         exitProcess(-1)
     }
+    val outputDirectory: File
+    if (args.size > 1) {
+        outputDirectory = File(args[1])
+        if (!outputDirectory.exists() && !outputDirectory.mkdirs()) {
+            println("Unable to create $outputDirectory")
+            exitProcess(-1)
+        }
+    } else {
+        outputDirectory = File(".")
+    }
     val client = OkHttpClient()
     val startDate = LocalDate.now()
     val endDate = startDate.minusDays(fetchConfig.days)
+    println("Downloading data between $startDate and $endDate. Logs will be placed in ${outputDirectory.canonicalPath}.\n")
     for (sensor in sensors) {
-        fetchDevice(client, startDate, endDate, sensor)
+        fetchDevice(client, startDate, endDate, sensor, outputDirectory)
     }
 }
 
@@ -54,25 +65,31 @@ fun fetchDevice(
         client: OkHttpClient,
         startDate: LocalDate,
         endDate: LocalDate,
-        sensorName: String
+        sensorName: String,
+        outputDirectory: File
 ) {
-    print("Fetching ${sensorName} ")
+    println("Fetching ${sensorName}")
     for (date in endDate..startDate) {
-        if (!client.fetch(date.toString(), sensorName)) {
-            println("\nFailed to fetch ${getUrl(date.toString(), sensorName)}")
+        print("$date")
+        if (!client.fetch(date.toString(), sensorName, outputDirectory)) {
+            println(" - failure. Failed to fetch ${getUrl(date.toString(), sensorName)}")
             break
         }
-        print(".")
+        println(" - success")
     }
-    println()
+    println("---------------")
 }
 
 fun getUrl(date: String, sensorName: String): String {
     return "https://archive.sensor.community/${date}/${date}_${sensorName}.csv"
 }
 
-fun OkHttpClient.fetch(date: String, sensorName: String): Boolean {
-    val outputFile = File("${date}_${sensorName}.csv")
+fun OkHttpClient.fetch(
+        date: String,
+        sensorName: String,
+        outputDirectory: File
+): Boolean {
+    val outputFile = File(outputDirectory, "${date}_${sensorName}.csv")
     if (outputFile.exists()) return true
     val url = getUrl(date, sensorName)
     val request = Request.Builder().url(url).build()
