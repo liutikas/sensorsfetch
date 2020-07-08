@@ -29,6 +29,6 @@ jobs:
       with:
         # Artifact path
         path: build/distributions
-  - name: Display structure of downloaded files
-    run: ls -R
-    working-directory: build
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: build
