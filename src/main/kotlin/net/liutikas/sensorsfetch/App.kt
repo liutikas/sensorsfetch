@@ -56,7 +56,7 @@ fun main(args: Array<String>) {
     val startDate = LocalDate.now()
     val endDate = startDate.minusDays(fetchConfig.days)
     println("Downloading data between $startDate and $endDate. Logs will be placed in ${outputDirectory.canonicalPath}.\n")
-    for (sensor in sensors) {
+    for (sensor in sensors.sorted()) {
         fetchDevice(client, startDate, endDate, sensor, outputDirectory)
     }
 }
@@ -73,8 +73,9 @@ fun fetchDevice(
         print("$date")
         if (!client.fetch(date.toString(), sensorName, outputDirectory)) {
             println(" - failure. Failed to fetch ${getUrl(date.toString(), sensorName)}")
+        } else {
+            println(" - success")
         }
-        println(" - success")
     }
     println("---------------")
 }
