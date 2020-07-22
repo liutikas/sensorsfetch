@@ -24,10 +24,14 @@ import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import kotlin.system.exitProcess
 
+
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
         println("Script expects you to pass a path to the config and optionally an output directory")
         exitProcess(-1)
+    }
+    if (args[0] == "graph") {
+        return generateGraph2()
     }
     val configFile = File(args[0])
     val moshi = Moshi.Builder().build()
