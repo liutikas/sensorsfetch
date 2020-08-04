@@ -11,71 +11,58 @@ import java.text.SimpleDateFormat
 
 private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss"
 private val dateFormat = SimpleDateFormat(DATE_FORMAT_PATTERN)
+private val dataToGraph = listOf(
+        "dht22" to "temperature",
+        "dht22" to "humidity",
+        "sds011" to "P1",
+        "sds011" to "P2",
+        "pms3003" to "P1",
+        "pms3003" to "P2"
+)
 
-fun parseCsv(csvPath: String): CSVParser {
-    val reader = FileReader(csvPath)
+fun parseCsv(csvFile: File): CSVParser {
+    val reader = FileReader(csvFile)
     val format = CSVFormat.newFormat(';').withFirstRecordAsHeader()
     return format.parse(reader)
 }
 
-fun generateGraph2() {
-    Plotly.page {
-        title = "Fancy graph"
-        plot {
-            trace(getTrace("sds011_sensor_43258", "P1"))
-            trace(getTrace("sds011_sensor_43295", "P1"))
-            trace(getTrace("sds011_sensor_44016", "P1"))
-            trace(getTrace("sds011_sensor_46879", "P1"))
-            trace(getTrace("sds011_sensor_46881", "P1"))
-            trace(getTrace("sds011_sensor_47325", "P1"))
-            trace(getTrace("sds011_sensor_47449", "P1"))
-            layout {
-                title = "SDS011 P1"
+fun generateGraph(successfullyFetchedFiles: Map<String, List<List<File>>>, outputDirectory: File) {
+    for ((sensorType, entry) in dataToGraph) {
+        val sensorList = successfullyFetchedFiles[sensorType] ?: return
+        val htmlFile = File(outputDirectory, "$sensorType-$entry.html")
+        Plotly.page {
+            title = "Fancy graph"
+            plot {
+                for (sensor in sensorList) {
+                    if (sensor.isEmpty()) continue
+                    trace(getTrace(sensor, entry))
+                }
+                layout {
+                    title = "$sensorType $entry"
+                }
             }
-        }
-    }.makeFile(File("sds001-p1.html"))
-
-    Plotly.page {
-        title = "Fancy graph"
-        plot {
-            trace(getTrace("sds011_sensor_43258", "P2"))
-            trace(getTrace("sds011_sensor_43295", "P2"))
-            trace(getTrace("sds011_sensor_44016", "P2"))
-            trace(getTrace("sds011_sensor_46879", "P2"))
-            trace(getTrace("sds011_sensor_46881", "P2"))
-            trace(getTrace("sds011_sensor_47325", "P2"))
-            trace(getTrace("sds011_sensor_47449", "P2"))
-            layout {
-                title = "SDS011 P2"
-            }
-        }
-    }.makeFile(File("sds001-p2.html"))
-
-    Plotly.page {
-        title = "Fancy graph"
-        plot {
-            trace(getTrace("dht22_sensor_43259", "temperature"))
-            trace(getTrace("dht22_sensor_43296", "temperature"))
-            trace(getTrace("dht22_sensor_44017", "temperature"))
-            trace(getTrace("dht22_sensor_46880", "temperature"))
-            trace(getTrace("dht22_sensor_46882", "temperature"))
-            trace(getTrace("dht22_sensor_47326", "temperature"))
-            trace(getTrace("dht22_sensor_47450", "temperature"))
-
-            layout {
-                title = "DHT22 temperature"
-            }
-        }
-    }.makeFile(File("dht22-temperature.html"))
+        }.makeFile(htmlFile)
+        println("Generated graph ${htmlFile.canonicalPath}")
+    }
 }
 
-fun getTrace(name: String, column: String): Trace {
-    val records = parseCsv("output/2020-07-06_$name.csv")
+fun getTrace(fileList: List<File>, column: String): Trace {
+    val values = mutableListOf<Pair<Long, Double>>()
+    val name = fileList[0].name.substringBefore('.').substringAfter('_')
+    for (file in fileList) {
+        val records = parseCsv(file)
+        for (record in records) {
+            values.add(
+                    dateFormat.parse(record.get("timestamp")).time to record.get(column).toDouble()
+            )
+        }
+    }
+    values.sortBy {(timestamp, _) -> timestamp}
     val dates = mutableListOf<Long>()
     val p1 = mutableListOf<Double>()
-    for (record in records) {
-        dates.add(dateFormat.parse(record.get("timestamp")).time)
-        p1.add(record.get(column).toDouble())
+    for (pair in values) {
+        dates.add(pair.first)
+        p1.add(pair.second)
     }
     val trace = Trace.build(dates, p1)
     trace.name = name

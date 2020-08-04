@@ -24,14 +24,10 @@ import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import kotlin.system.exitProcess
 
-
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
         println("Script expects you to pass a path to the config and optionally an output directory")
         exitProcess(-1)
-    }
-    if (args[0] == "graph") {
-        return generateGraph2()
     }
     val configFile = File(args[0])
     val moshi = Moshi.Builder().build()
@@ -60,9 +56,16 @@ fun main(args: Array<String>) {
     val startDate = LocalDate.now()
     val endDate = startDate.minusDays(fetchConfig.days)
     println("Downloading data between $startDate and $endDate. Logs will be placed in ${outputDirectory.canonicalPath}.\n")
+    val successfullyFetchedFiles: MutableMap<String, MutableList<MutableList<File>>> = mutableMapOf()
     for (sensor in sensors.sorted()) {
-        fetchDevice(client, startDate, endDate, sensor, outputDirectory)
+        val sensorType = sensor.substringBefore('_')
+        if (!successfullyFetchedFiles.containsKey(sensorType)) successfullyFetchedFiles[sensorType] = mutableListOf()
+        val sensorList = successfullyFetchedFiles[sensorType]!!
+        val sensorFiles = mutableListOf<File>()
+        sensorList.add(sensorFiles)
+        fetchDevice(client, startDate, endDate, sensor, outputDirectory, sensorFiles)
     }
+    generateGraph(successfullyFetchedFiles, outputDirectory)
 }
 
 fun fetchDevice(
@@ -70,14 +73,17 @@ fun fetchDevice(
         startDate: LocalDate,
         endDate: LocalDate,
         sensorName: String,
-        outputDirectory: File
+        outputDirectory: File,
+        successfullyFetchedFiles: MutableList<File>
 ) {
-    println("Fetching ${sensorName}")
+    println("Fetching $sensorName")
     for (date in endDate..startDate) {
         print("$date")
-        if (!client.fetch(date.toString(), sensorName, outputDirectory)) {
+        val fetchedFile = client.fetch(date.toString(), sensorName, outputDirectory)
+        if (fetchedFile == null) {
             println(" - failure. Failed to fetch ${getUrl(date.toString(), sensorName)}")
         } else {
+            successfullyFetchedFiles.add(fetchedFile)
             println(" - success")
         }
     }
@@ -92,16 +98,16 @@ fun OkHttpClient.fetch(
         date: String,
         sensorName: String,
         outputDirectory: File
-): Boolean {
+): File? {
     val outputFile = File(outputDirectory, "${date}_${sensorName}.csv")
-    if (outputFile.exists()) return true
+    if (outputFile.exists()) return outputFile
     val url = getUrl(date, sensorName)
     val request = Request.Builder().url(url).build()
     val response = newCall(request).execute()
-    if (response.code != 200) return false
-    val body = response.body?.byteStream() ?: return false
+    if (response.code != 200) return null
+    val body = response.body?.byteStream() ?: return null
     Files.copy(body, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
-    return true
+    return outputFile
 }
 
 @JsonClass(generateAdapter = true)
