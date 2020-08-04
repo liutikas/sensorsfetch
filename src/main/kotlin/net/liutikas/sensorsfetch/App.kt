@@ -65,7 +65,11 @@ fun main(args: Array<String>) {
         sensorList.add(sensorFiles)
         fetchDevice(client, startDate, endDate, sensor, outputDirectory, sensorFiles)
     }
-    generateGraph(successfullyFetchedFiles, outputDirectory)
+    if (fetchConfig.dataToGraph.isEmpty()) {
+        println("There was no entry in the config for data to graph")
+        exitProcess(-1)
+    }
+    generateGraph(fetchConfig.dataToGraph, successfullyFetchedFiles, outputDirectory)
 }
 
 fun fetchDevice(
@@ -113,5 +117,6 @@ fun OkHttpClient.fetch(
 @JsonClass(generateAdapter = true)
 data class FetchConfig(
        val days: Long = 1,
-       val sensorsNames: List<String> = emptyList()
+       val sensorsNames: List<String> = emptyList(),
+       val dataToGraph: List<List<String>> = emptyList()
 )

@@ -17,5 +17,13 @@
   	"sds011_sensor_46881",
   	"sds011_sensor_47325",
   	"sds011_sensor_47449"
+  ],
+  "dataToGraph": [
+	  ["dht22", "temperature"],
+	  ["dht22", "humidity"],
+	  ["sds011", "P1"],
+	  ["sds011", "P2"],
+	  ["pms3003", "P1"],
+	  ["pms3003", "P2"]
   ]
 }
