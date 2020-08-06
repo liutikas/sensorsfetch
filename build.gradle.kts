@@ -22,3 +22,5 @@ dependencies {
 application {
     mainClassName = "net.liutikas.sensorsfetch.AppKt"
 }
+
+version = "1.0.0"
