@@ -16,12 +16,7 @@ package net.liutikas.sensorsfetch
 
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-import java.time.LocalDate
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -52,66 +47,12 @@ fun main(args: Array<String>) {
     } else {
         outputDirectory = File(".")
     }
-    val client = OkHttpClient()
-    val startDate = LocalDate.now()
-    val endDate = startDate.minusDays(fetchConfig.days)
-    println("Downloading data between $startDate and $endDate. Logs will be placed in ${outputDirectory.canonicalPath}.\n")
-    val successfullyFetchedFiles: MutableMap<String, MutableList<MutableList<File>>> = mutableMapOf()
-    for (sensor in sensors.sorted()) {
-        val sensorType = sensor.substringBefore('_')
-        if (!successfullyFetchedFiles.containsKey(sensorType)) successfullyFetchedFiles[sensorType] = mutableListOf()
-        val sensorList = successfullyFetchedFiles[sensorType]!!
-        val sensorFiles = mutableListOf<File>()
-        sensorList.add(sensorFiles)
-        fetchDevice(client, startDate, endDate, sensor, outputDirectory, sensorFiles)
-    }
+    val successfullyFetchedFiles = startFetching(fetchConfig, outputDirectory, sensors)
     if (fetchConfig.dataToGraph.isEmpty()) {
         println("There was no entry in the config for data to graph")
         exitProcess(-1)
     }
     generateGraph(fetchConfig.dataToGraph, successfullyFetchedFiles, outputDirectory)
-}
-
-fun fetchDevice(
-        client: OkHttpClient,
-        startDate: LocalDate,
-        endDate: LocalDate,
-        sensorName: String,
-        outputDirectory: File,
-        successfullyFetchedFiles: MutableList<File>
-) {
-    println("Fetching $sensorName")
-    for (date in endDate..startDate) {
-        print("$date")
-        val fetchedFile = client.fetch(date.toString(), sensorName, outputDirectory)
-        if (fetchedFile == null) {
-            println(" - failure. Failed to fetch ${getUrl(date.toString(), sensorName)}")
-        } else {
-            successfullyFetchedFiles.add(fetchedFile)
-            println(" - success")
-        }
-    }
-    println("---------------")
-}
-
-fun getUrl(date: String, sensorName: String): String {
-    return "https://archive.sensor.community/${date}/${date}_${sensorName}.csv"
-}
-
-fun OkHttpClient.fetch(
-        date: String,
-        sensorName: String,
-        outputDirectory: File
-): File? {
-    val outputFile = File(outputDirectory, "${date}_${sensorName}.csv")
-    if (outputFile.exists()) return outputFile
-    val url = getUrl(date, sensorName)
-    val request = Request.Builder().url(url).build()
-    val response = newCall(request).execute()
-    if (response.code != 200) return null
-    val body = response.body?.byteStream() ?: return null
-    Files.copy(body, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
-    return outputFile
 }
 
 @JsonClass(generateAdapter = true)
