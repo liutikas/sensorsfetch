@@ -15,7 +15,6 @@
 package net.liutikas.sensorsfetch
 
 import kotlinx.coroutines.*
-import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import ru.gildor.coroutines.okhttp.await

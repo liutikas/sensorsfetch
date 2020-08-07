@@ -20,6 +20,16 @@ import java.io.File
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
+    val (fetchConfig, outputDirectory) = parseInputArgs(args)
+    val fetchedFiles = startFetching(fetchConfig, outputDirectory, fetchConfig.sensorsNames)
+    if (fetchConfig.dataToGraph.isEmpty()) {
+        println("There was no entry in the config for data to graph")
+        exitProcess(-1)
+    }
+    generateGraph(fetchConfig.dataToGraph, fetchedFiles, outputDirectory)
+}
+
+private fun parseInputArgs(args: Array<String>): Pair<FetchConfig, File> {
     if (args.isEmpty()) {
         println("Script expects you to pass a path to the config and optionally an output directory")
         exitProcess(-1)
@@ -47,12 +57,7 @@ fun main(args: Array<String>) {
     } else {
         outputDirectory = File(".")
     }
-    val successfullyFetchedFiles = startFetching(fetchConfig, outputDirectory, sensors)
-    if (fetchConfig.dataToGraph.isEmpty()) {
-        println("There was no entry in the config for data to graph")
-        exitProcess(-1)
-    }
-    generateGraph(fetchConfig.dataToGraph, successfullyFetchedFiles, outputDirectory)
+    return Pair(fetchConfig, outputDirectory)
 }
 
 @JsonClass(generateAdapter = true)
