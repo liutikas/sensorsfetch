@@ -14,7 +14,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1")
     implementation("ru.gildor.coroutines:kotlin-coroutines-okhttp:1.0")
-    implementation("com.squareup.okhttp3:okhttp:4.7.2")
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
     implementation("com.squareup.moshi:moshi:1.11.0")
     implementation("org.apache.commons:commons-csv:1.8")
     implementation("scientifik:plotlykt-core:0.1.2")
